@@ -24,40 +24,61 @@ class TestRoutes(TestCase):
             author=cls.author
         )
 
-    def test_page_avaibility(self):
+    def test_page_avaibility_for_anonymous_user(self):
         urls = (
-            ('notes:home', None),
-            ('users:login', None),
-            ('users:logout', None),
+            'notes:home', 'users:login',
+            'users:logout', 'users:signup'
         )
-        for name, args in urls:
+        for name in urls:
             with self.subTest(name=name):
-                url = reverse(name, args=args)
+                url = reverse(name)
                 response = self.client.get(url)
                 self.assertEqual(response.status_code, HTTPStatus.OK)
 
-    def test_avaibility_someone_else(self):
+    def test_pages_availability_for_auth_user(self):
+        urls = (
+            'notes:list', 'notes:add', 'notes:success'
+        )
+        user = self.anotheruser
+        self.client.force_login(user)
+        for name in urls:
+            with self.subTest(name=name):
+                url = reverse(name)
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    def test_avaibility_for_different_users(self):
         users_statuses = (
             (self.author, HTTPStatus.OK),
             (self.anotheruser, HTTPStatus.NOT_FOUND)
         )
         urls = (
-            ('notes:detail'),
-            ('notes:edit'),
-            ('notes:delete')
+            'notes:detail', 'notes:edit', 'notes:delete'
         )
         for user, status in users_statuses:
             self.client.force_login(user)
             for name in urls:
-                with self.subTest(user=user, name=name):
+                with self.subTest(name=name):
                     url = reverse(name, args=(self.note.slug,))
                     response = self.client.get(url)
                     self.assertEqual(response.status_code, status)
 
-    def test_redirect_for_not_authenticated(self):
+    def test_redirects_for_not_authenticated(self):
+        urls = (
+            ('notes:detail', self.note.slug),
+            ('notes:edit', self.note.slug),
+            ('notes:delete', self.note.slug),
+            ('notes:add', None),
+            ('notes:success', None),
+            ('notes:list', None)
+        )
         login_url = reverse('users:login')
-        name = ('notes:add')
-        url = reverse(name)
-        redirect_url = f'{login_url}?next={url}'
-        response = self.client.get(url)
-        self.assertRedirects(response, redirect_url)
+        for name, args in urls:
+            with self.subTest(name=name):
+                if args is not None:
+                    url = reverse(name, args=(args,))
+                else:
+                    url = reverse(name)
+                redirect_url = f'{login_url}?next={url}'
+                response = self.client.get(url)
+                self.assertRedirects(response, redirect_url)
