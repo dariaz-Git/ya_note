@@ -1,54 +1,36 @@
 from http import HTTPStatus
 
-from .confest import URLS, WithNoteMixin
+from .confest import WithNoteMixin
 
 
 class TestRoutes(WithNoteMixin):
 
-    def test_page_avaibility_for_anonymous_user(self):
-        urls = (
-            URLS['home'], URLS['login'],
-            URLS['logout'], URLS['signup']
-        )
-        for url in urls:
-            with self.subTest(name=url):
-                response = self.client.get(url)
-                self.assertEqual(response.status_code, HTTPStatus.OK)
-
-    def test_pages_availability_for_auth_user(self):
-        urls = (
-            URLS['list'], URLS['add'], URLS['success']
-        )
-        for url in urls:
-            with self.subTest(name=url):
-                response = self.reader_client.get(url)
-                self.assertEqual(response.status_code, HTTPStatus.OK)
-
-    def test_avaibility_for_different_users(self):
-        users_statuses = (
-            (self.author_client, HTTPStatus.OK),
-            (self.reader_client, HTTPStatus.NOT_FOUND)
-        )
-        urls = (
-            URLS['detail'], URLS['edit'], URLS['delete']
-        )
-        for user, status in users_statuses:
-            for url in urls:
-                with self.subTest(name=url):
-                    response = user.get(url)
-                    self.assertEqual(response.status_code, status)
-
-    def test_redirects_for_not_authenticated(self):
-        urls = (
-            URLS['detail'],
-            URLS['edit'],
-            URLS['delete'],
-            URLS['add'],
-            URLS['success'],
-            URLS['list']
-        )
-        for url in urls:
-            with self.subTest(name=url):
-                redirect_url = f'{URLS["login"]}?next={url}'
-                response = self.client.get(url)
-                self.assertRedirects(response, redirect_url)
+    def test_page_aviability(self):
+        cases = [
+            [self.author_client, self.url_detail, HTTPStatus.OK],
+            [self.author_client, self.url_edit, HTTPStatus.OK],
+            [self.author_client, self.url_delete, HTTPStatus.OK],
+            [self.author_client, self.url_list, HTTPStatus.OK],
+            [self.author_client, self.url_add, HTTPStatus.OK],
+            [self.author_client, self.url_success, HTTPStatus.OK],
+            [self.reader_client, self.url_detail, HTTPStatus.NOT_FOUND],
+            [self.reader_client, self.url_edit, HTTPStatus.NOT_FOUND],
+            [self.reader_client, self.url_delete, HTTPStatus.NOT_FOUND],
+            [self.client, self.url_home, HTTPStatus.OK],
+            [self.client, self.url_login, HTTPStatus.OK],
+            [self.client, self.url_logout, HTTPStatus.OK],
+            [self.client, self.url_signup, HTTPStatus.OK],
+            [self.client, self.url_detail, HTTPStatus.FOUND],
+            [self.client, self.url_edit, HTTPStatus.FOUND],
+            [self.client, self.url_delete, HTTPStatus.FOUND],
+            [self.client, self.url_add, HTTPStatus.FOUND],
+            [self.client, self.url_success, HTTPStatus.FOUND],
+            [self.client, self.url_list, HTTPStatus.FOUND],
+        ]
+        for user, url, status in cases:
+            with self.subTest(user=user, name=url):
+                response = user.get(url)
+                self.assertEqual(response.status_code, status)
+                if status == HTTPStatus.FOUND:
+                    redirect_url = f'{self.url_login}?next={url}'
+                    self.assertRedirects(response, redirect_url)
