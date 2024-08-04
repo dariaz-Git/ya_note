@@ -10,7 +10,7 @@ from notes.forms import WARNING
 from notes.models import Note
 
 
-class TestNoteCreation(WithNoteMixin):
+class TestNoteCreationDeleteEdit(WithNoteMixin):
 
     def test_anonymous_user_cant_create_note(self):
         self.client.post(self.url_add, data=FORM_DATA)
@@ -27,11 +27,6 @@ class TestNoteCreation(WithNoteMixin):
         self.assertEqual(note.title, TITLE)
         self.assertEqual(note.text, TEXT)
         self.assertEqual(note.author, self.author)
-
-
-class TestNoteEditDeleteAndSlug(WithNoteMixin):
-    # Что стоит объявить в одном классе?
-    # Если про Mixin, то они должны быть разделены
 
     def test_empty_slug(self):
         expected_slug = slugify(TITLE)
