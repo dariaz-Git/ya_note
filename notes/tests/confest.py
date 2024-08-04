@@ -11,18 +11,6 @@ TEXT = 'Старый текст'
 NEW_TEXT = 'Новый текст'
 FORM_DATA = {'title': TITLE, 'text': TEXT}
 NEW_FORM_DATA = {'title': TITLE, 'text': NEW_TEXT}
-URLS = {
-    'home': reverse('notes:home'),
-    'login': reverse('users:login'),
-    'logout': reverse('users:logout'),
-    'signup': reverse('users:signup'),
-    'success': reverse('notes:success'),
-    'list': reverse('notes:list'),
-    'add': reverse('notes:add'),
-    'detail': reverse('notes:detail', args=(TITLE,)),
-    'edit': reverse('notes:edit', args=(TITLE,)),
-    'delete': reverse('notes:delete', args=(TITLE,))
-}
 
 
 class WithNoteMixin(TestCase):
@@ -52,15 +40,3 @@ class WithNoteMixin(TestCase):
         cls.url_detail = reverse('notes:detail', args=(TITLE,))
         cls.url_edit = reverse('notes:edit', args=(TITLE,))
         cls.url_delete = reverse('notes:delete', args=(TITLE,))
-
-
-class WithoutNoteMixin(TestCase):
-    # Не лишнее разделение, отдельный класс создан специально для тестов без
-    # объекта Note, где заранее заготовленный Note только мешать будет.
-    @classmethod
-    def setUpTestData(cls):
-        cls.author = User.objects.create(username='Writer')
-        cls.author_client = Client()
-        cls.author_client.force_login(cls.author)
-        cls.url_add = reverse('notes:add')
-        cls.url_success = reverse('notes:success')
