@@ -13,16 +13,14 @@ class TestContent(WithNoteMixin):
                 self.assertIn('form', response.context)
                 self.assertIsInstance(response.context['form'], NoteForm)
 
-    def test_notes_list_for_different_users(self):
-        # Зачем делить, если можно и объединёнными
-        users = (
-            (self.author, True),
-            (self.reader, False)
-        )
-        for user, bool_stat in users:
-            self.client.force_login(user)
-            response = self.client.get(self.url_list)
-            object_list = response.context['object_list']
-            self.assertEqual(bool(self.note in object_list), bool_stat)
-            if bool_stat:
-                self.assertEqual(object_list.get(), self.note)
+    # Эхх, разделить так разделить(
+    def test_notes_list_for_not_author(self):
+        response = self.reader_client.get(self.url_list)
+        object_list = response.context['object_list']
+        self.assertNotIn(self.note, object_list)
+
+    def test_notes_list_for_author(self):
+        response = self.author_client.get(self.url_list)
+        object_list = response.context['object_list']
+        self.assertIn(self.note, object_list)
+        self.assertEqual(object_list.get(), self.note)

@@ -11,6 +11,7 @@ TEXT = 'Старый текст'
 NEW_TEXT = 'Новый текст'
 FORM_DATA = {'title': TITLE, 'text': TEXT}
 NEW_FORM_DATA = {'title': TITLE, 'text': NEW_TEXT}
+FORM_DATA_SLUG = {'title': TITLE, 'text': TEXT, 'slug': 'helloimslug'}
 
 
 class WithNoteMixin(TestCase):
